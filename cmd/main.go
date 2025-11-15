@@ -4,18 +4,19 @@ import (
 	"log"
 	"net/http"
 
-	api "github.com/AlexVashchenkov/avito-pr-reviewer-service/gen"
+	api "github.com/AlexVashchenkov/avito-pr-reviewer-service/api"
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/app"
-	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo"
+	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo/memory"
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/service"
 )
 
 func main() {
-	repo := repo.NewInMemoryRepository()
+	repo := memory.InitRepo()
+	prService := service.NewPullRequestService(repo, repo, repo)
+	userService := service.NewUserService(repo, repo)
+	teamService := service.NewTeamService(repo)
 
-	prService := service.NewPullRequestService(repo)
-
-	handler := app.NewHandler(prService)
+	handler := app.NewHandler(prService, userService, teamService)
 	security := app.NewSecurityHandler()
 
 	srv, err := api.NewServer(handler, security)

@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	api "github.com/AlexVashchenkov/avito-pr-reviewer-service/gen"
+	api "github.com/AlexVashchenkov/avito-pr-reviewer-service/api"
 )
 
 type SecurityHandler struct {
