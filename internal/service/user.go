@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	api "github.com/AlexVashchenkov/avito-pr-reviewer-service/api"
-	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo"
+	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo/contracts"
 )
 
 var (
@@ -12,12 +12,17 @@ var (
 )
 
 type UserService struct {
-	userRepo repo.UserRepository
-	prRepo   repo.PullRequestRepository
+	userRepo contracts.UserRepository
+	prRepo   contracts.PullRequestRepository
+	teamRepo contracts.TeamRepository
 }
 
-func NewUserService(userRepo repo.UserRepository, prRepo repo.PullRequestRepository) *UserService {
-	return &UserService{userRepo: userRepo, prRepo: prRepo}
+func NewUserService(prRepo contracts.PullRequestRepository, userRepo contracts.UserRepository, teamRepo contracts.TeamRepository) *UserService {
+	return &UserService{
+		userRepo: userRepo,
+		prRepo:   prRepo,
+		teamRepo: teamRepo,
+	}
 }
 
 func (s *UserService) GetUserReviews(id string) ([]api.PullRequestShort, error) {
@@ -37,9 +42,13 @@ func (s *UserService) SetUserActive(id string, isActive bool) (*api.User, error)
 
 	user.SetIsActive(isActive)
 
-	if newUser, ok := s.userRepo.UpdateUser(user); !ok {
-		return nil, ErrPullRequestNotFound
-	} else {
-		return newUser, nil
+	if _, ok := s.teamRepo.UpdateTeamMember(user); !ok {
+		return nil, ErrTeamNotFound
 	}
+
+	if _, ok := s.userRepo.UpdateUser(user); !ok {
+		return nil, ErrPullRequestNotFound
+	}
+
+	return user, nil
 }

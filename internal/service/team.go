@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	api "github.com/AlexVashchenkov/avito-pr-reviewer-service/api"
-	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo"
+	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo/contracts"
 )
 
 var (
@@ -14,10 +14,10 @@ var (
 )
 
 type TeamService struct {
-	teamRepo repo.TeamRepository
+	teamRepo contracts.TeamRepository
 }
 
-func NewTeamService(teamRepo repo.TeamRepository) *TeamService {
+func NewTeamService(teamRepo contracts.TeamRepository) *TeamService {
 	return &TeamService{teamRepo: teamRepo}
 }
 

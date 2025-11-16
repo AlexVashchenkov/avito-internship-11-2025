@@ -23,7 +23,7 @@ func NewHandler(prService *service.PullRequestService, userService *service.User
 }
 
 func (h *Handler) PullRequestCreatePost(ctx context.Context, req *api.PullRequestCreatePostReq) (api.PullRequestCreatePostRes, error) {
-	_, err := h.prService.Create(ctx, req)
+	pr, err := h.prService.Create(ctx, req)
 	if errors.Is(err, service.ErrPullRequestExists) {
 		return &api.PullRequestCreatePostConflict{
 			Error: api.ErrorResponseError{
@@ -31,7 +31,7 @@ func (h *Handler) PullRequestCreatePost(ctx context.Context, req *api.PullReques
 				Message: err.Error(),
 			},
 		}, nil
-	} else if errors.Is(err, service.ErrPullRequestOrUserNotFound) {
+	} else if errors.Is(err, service.ErrUserOrTeamNotFound) {
 		return &api.PullRequestCreatePostNotFound{
 			Error: api.ErrorResponseError{
 				Code:    api.ErrorResponseErrorCodeNOTFOUND,
@@ -39,11 +39,13 @@ func (h *Handler) PullRequestCreatePost(ctx context.Context, req *api.PullReques
 			},
 		}, nil
 	}
-	return &api.PullRequestCreatePostCreated{}, nil
+	return &api.PullRequestCreatePostCreated{
+		Pr: api.NewOptPullRequest(*pr),
+	}, nil
 }
 
 func (h *Handler) PullRequestMergePost(ctx context.Context, req *api.PullRequestMergePostReq) (api.PullRequestMergePostRes, error) {
-	_, err := h.prService.Merge(ctx, req)
+	pr, err := h.prService.Merge(ctx, req)
 	if errors.Is(err, service.ErrPullRequestNotFound) {
 		return &api.ErrorResponse{
 			Error: api.ErrorResponseError{
@@ -52,11 +54,13 @@ func (h *Handler) PullRequestMergePost(ctx context.Context, req *api.PullRequest
 			},
 		}, nil
 	}
-	return &api.PullRequestMergePostOK{}, nil
+	return &api.PullRequestMergePostOK{
+		Pr: api.NewOptPullRequest(*pr),
+	}, nil
 }
 
 func (h *Handler) PullRequestReassignPost(ctx context.Context, req *api.PullRequestReassignPostReq) (api.PullRequestReassignPostRes, error) {
-	_, err := h.prService.Reassign(ctx, req)
+	pr, newReviewer, err := h.prService.Reassign(ctx, req)
 	if errors.Is(err, service.ErrPullRequestNotFound) {
 		return &api.PullRequestReassignPostNotFound{
 			Error: api.ErrorResponseError{
@@ -64,12 +68,43 @@ func (h *Handler) PullRequestReassignPost(ctx context.Context, req *api.PullRequ
 				Message: err.Error(),
 			},
 		}, nil
+	} else if errors.Is(err, service.ErrPullRequestAlreadyMerged) {
+		return &api.PullRequestReassignPostConflict{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodePRMERGED,
+				Message: err.Error(),
+			},
+		}, nil
+	} else if errors.Is(err, service.ErrReviewerIsNotAssigned) {
+		return &api.PullRequestReassignPostConflict{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTASSIGNED,
+				Message: err.Error(),
+			},
+		}, nil
+	} else if errors.Is(err, service.ErrPullRequestOrUserNotFound) {
+		return &api.PullRequestReassignPostConflict{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: err.Error(),
+			},
+		}, nil
+	} else if errors.Is(err, service.ErrPullRequestNoAvailableCandidates) {
+		return &api.PullRequestReassignPostConflict{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOCANDIDATE,
+				Message: err.Error(),
+			},
+		}, nil
 	}
-	return &api.PullRequestReassignPostOK{}, nil
+	return &api.PullRequestReassignPostOK{
+		Pr:         *pr,
+		ReplacedBy: newReviewer,
+	}, nil
 }
 
 func (h *Handler) TeamAddPost(ctx context.Context, req *api.Team) (api.TeamAddPostRes, error) {
-	_, err := h.teamService.Create(ctx, req)
+	team, err := h.teamService.Create(ctx, req)
 	if errors.Is(err, service.ErrTeamExists) {
 		return &api.ErrorResponse{
 			Error: api.ErrorResponseError{
@@ -78,7 +113,9 @@ func (h *Handler) TeamAddPost(ctx context.Context, req *api.Team) (api.TeamAddPo
 			},
 		}, nil
 	}
-	return &api.TeamAddPostCreated{}, nil
+	return &api.TeamAddPostCreated{
+		Team: api.NewOptTeam(*team),
+	}, nil
 }
 
 func (h *Handler) TeamGetGet(ctx context.Context, params api.TeamGetGetParams) (api.TeamGetGetRes, error) {

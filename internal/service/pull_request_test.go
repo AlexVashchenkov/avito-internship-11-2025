@@ -1,6 +1,5 @@
 package service_test
 
-/*
 import (
 	"context"
 	"testing"
@@ -12,11 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func TestPullRequestService_CreateAlreadyExists(t *testing.T) {
 	ctx := context.Background()
-	r := memory.InitRepo()
-	s := service.NewPullRequestService()
+	prRepo := memory.InitPullRequestRepo()
+	userRepo := memory.InitUserRepo()
+	teamRepo := memory.InitTeamRepo()
+	s := service.NewPullRequestService(prRepo, userRepo, teamRepo)
 
 	req := &api.PullRequestCreatePostReq{
 		PullRequestID:   "pr-test-1",
@@ -42,8 +42,10 @@ func TestPullRequestService_CreateAlreadyExists(t *testing.T) {
 
 func TestPullRequestService_AuthorNotFound(t *testing.T) {
 	ctx := context.Background()
-	r := memory.InitRepo()
-	s := service.NewPullRequestService(r)
+	prRepo := memory.InitPullRequestRepo()
+	userRepo := memory.InitUserRepo()
+	teamRepo := memory.InitTeamRepo()
+	s := service.NewPullRequestService(prRepo, userRepo, teamRepo)
 
 	req := &api.PullRequestCreatePostReq{
 		PullRequestID:   "pr-test-1",
@@ -52,13 +54,15 @@ func TestPullRequestService_AuthorNotFound(t *testing.T) {
 	}
 
 	_, err := s.Create(ctx, req)
-	require.Equal(t, err, service.ErrPullRequestOrUserNotFound)
+	require.Equal(t, err, service.ErrUserOrTeamNotFound)
 }
 
 func TestPullRequestService_TeamNotFound(t *testing.T) {
 	ctx := context.Background()
-	r := memory.InitRepo()
-	s := service.NewPullRequestService(r)
+	prRepo := memory.InitPullRequestRepo()
+	userRepo := memory.InitUserRepo()
+	teamRepo := memory.InitTeamRepo()
+	s := service.NewPullRequestService(prRepo, userRepo, teamRepo)
 
 	req := &api.PullRequestCreatePostReq{
 		PullRequestID:   "pr-test-1",
@@ -67,13 +71,15 @@ func TestPullRequestService_TeamNotFound(t *testing.T) {
 	}
 
 	_, err := s.Create(ctx, req)
-	require.Equal(t, err, service.ErrPullRequestOrUserNotFound)
+	require.Equal(t, err, service.ErrUserOrTeamNotFound)
 }
 
 func TestPullRequestService_CreateAndMerge(t *testing.T) {
 	ctx := context.Background()
-	r := memory.InitRepo()
-	s := service.NewPullRequestService(r)
+	prRepo := memory.InitPullRequestRepo()
+	userRepo := memory.InitUserRepo()
+	teamRepo := memory.InitTeamRepo()
+	s := service.NewPullRequestService(prRepo, userRepo, teamRepo)
 
 	req := &api.PullRequestCreatePostReq{
 		PullRequestID:   "pr-test-1",
@@ -97,4 +103,3 @@ func TestPullRequestService_CreateAndMerge(t *testing.T) {
 	require.Equal(t, api.PullRequestStatusMERGED, remerged.Status)
 	require.Equal(t, merged.GetMergedAt(), remerged.GetMergedAt())
 }
-*/

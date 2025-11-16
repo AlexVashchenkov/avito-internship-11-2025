@@ -1,19 +1,18 @@
 package service_test
 
-/*
 import (
 	"context"
 	"testing"
 
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/api"
-	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo"
+	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo/memory"
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/service"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTeamService_Create(t *testing.T) {
 	ctx := context.Background()
-	r := repo.InitRepo()
+	r := memory.InitTeamRepo()
 	s := service.NewTeamService(r)
 
 	team := &api.Team{
@@ -35,7 +34,7 @@ func TestTeamService_Create(t *testing.T) {
 
 func TestTeamService_CreateAlreadyExists(t *testing.T) {
 	ctx := context.Background()
-	r := repo.InitRepo()
+	r := memory.InitTeamRepo()
 	s := service.NewTeamService(r)
 
 	team := &api.Team{
@@ -53,4 +52,3 @@ func TestTeamService_CreateAlreadyExists(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, err, service.ErrTeamExists)
 }
-*/

@@ -11,10 +11,13 @@ import (
 )
 
 func main() {
-	repo := memory.InitRepo()
-	prService := service.NewPullRequestService(repo, repo, repo)
-	userService := service.NewUserService(repo, repo)
-	teamService := service.NewTeamService(repo)
+	prRepo := memory.InitPullRequestRepo()
+	userRepo := memory.InitUserRepo()
+	teamRepo := memory.InitTeamRepo()
+
+	prService := service.NewPullRequestService(prRepo, userRepo, teamRepo)
+	userService := service.NewUserService(prRepo, userRepo, teamRepo)
+	teamService := service.NewTeamService(teamRepo)
 
 	handler := app.NewHandler(prService, userService, teamService)
 	security := app.NewSecurityHandler()
