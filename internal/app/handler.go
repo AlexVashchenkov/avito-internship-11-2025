@@ -23,6 +23,31 @@ func NewHandler(prService *service.PullRequestService, userService *service.User
 }
 
 func (h *Handler) PullRequestCreatePost(ctx context.Context, req *api.PullRequestCreatePostReq) (api.PullRequestCreatePostRes, error) {
+	if req.PullRequestID == "" {
+		return &api.PullRequestCreatePostNotFound{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "pull_request_id is required",
+			},
+		}, nil
+	}
+	if req.PullRequestName == "" {
+		return &api.PullRequestCreatePostNotFound{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "pull_request_name is required",
+			},
+		}, nil
+	}
+	if req.AuthorID == "" {
+		return &api.PullRequestCreatePostNotFound{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "author_id is required",
+			},
+		}, nil
+	}
+
 	pr, err := h.prService.Create(ctx, req)
 	if errors.Is(err, service.ErrPullRequestExists) {
 		return &api.PullRequestCreatePostConflict{
@@ -45,6 +70,15 @@ func (h *Handler) PullRequestCreatePost(ctx context.Context, req *api.PullReques
 }
 
 func (h *Handler) PullRequestMergePost(ctx context.Context, req *api.PullRequestMergePostReq) (api.PullRequestMergePostRes, error) {
+	if req.PullRequestID == "" {
+		return &api.ErrorResponse{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "pull_request_id is required",
+			},
+		}, nil
+	}
+
 	pr, err := h.prService.Merge(ctx, req)
 	if errors.Is(err, service.ErrPullRequestNotFound) {
 		return &api.ErrorResponse{
@@ -60,6 +94,23 @@ func (h *Handler) PullRequestMergePost(ctx context.Context, req *api.PullRequest
 }
 
 func (h *Handler) PullRequestReassignPost(ctx context.Context, req *api.PullRequestReassignPostReq) (api.PullRequestReassignPostRes, error) {
+	if req.PullRequestID == "" {
+		return &api.PullRequestReassignPostNotFound{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "pull_request_id is required",
+			},
+		}, nil
+	}
+	if req.OldUserID == "" {
+		return &api.PullRequestReassignPostConflict{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "old_user_id is required",
+			},
+		}, nil
+	}
+
 	pr, newReviewer, err := h.prService.Reassign(ctx, req)
 	if errors.Is(err, service.ErrPullRequestNotFound) {
 		return &api.PullRequestReassignPostNotFound{
@@ -104,6 +155,43 @@ func (h *Handler) PullRequestReassignPost(ctx context.Context, req *api.PullRequ
 }
 
 func (h *Handler) TeamAddPost(ctx context.Context, req *api.Team) (api.TeamAddPostRes, error) {
+	if req.TeamName == "" {
+		return &api.ErrorResponse{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "team_name is required",
+			},
+		}, nil
+	}
+	for i, member := range req.Members {
+		if member.UserID == "" {
+			return &api.ErrorResponse{
+				Error: api.ErrorResponseError{
+					Code:    api.ErrorResponseErrorCodeNOTFOUND,
+					Message: "member user_id is required",
+				},
+			}, nil
+		}
+		if member.Username == "" {
+			return &api.ErrorResponse{
+				Error: api.ErrorResponseError{
+					Code:    api.ErrorResponseErrorCodeNOTFOUND,
+					Message: "member username is required",
+				},
+			}, nil
+		}
+		for j := i + 1; j < len(req.Members); j++ {
+			if req.Members[j].UserID == member.UserID {
+				return &api.ErrorResponse{
+					Error: api.ErrorResponseError{
+						Code:    api.ErrorResponseErrorCodeNOTFOUND,
+						Message: "duplicate user_id in members",
+					},
+				}, nil
+			}
+		}
+	}
+
 	team, err := h.teamService.Create(ctx, req)
 	if errors.Is(err, service.ErrTeamExists) {
 		return &api.ErrorResponse{
@@ -146,6 +234,15 @@ func (h *Handler) UsersGetReviewGet(ctx context.Context, params api.UsersGetRevi
 }
 
 func (h *Handler) UsersSetIsActivePost(ctx context.Context, req *api.UsersSetIsActivePostReq) (api.UsersSetIsActivePostRes, error) {
+	if req.UserID == "" {
+		return &api.UsersSetIsActivePostNotFound{
+			Error: api.ErrorResponseError{
+				Code:    api.ErrorResponseErrorCodeNOTFOUND,
+				Message: "user_id is required",
+			},
+		}, nil
+	}
+
 	user, err := h.userService.SetUserActive(req.UserID, req.IsActive)
 	if errors.Is(err, service.ErrUserNotFound) {
 		return &api.UsersSetIsActivePostNotFound{

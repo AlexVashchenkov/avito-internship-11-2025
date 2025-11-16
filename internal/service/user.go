@@ -47,7 +47,7 @@ func (s *UserService) SetUserActive(id string, isActive bool) (*api.User, error)
 	}
 
 	if _, ok := s.userRepo.UpdateUser(user); !ok {
-		return nil, ErrPullRequestNotFound
+		return nil, ErrUserNotFound
 	}
 
 	return user, nil

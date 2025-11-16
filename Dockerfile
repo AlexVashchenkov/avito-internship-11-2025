@@ -6,6 +6,7 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
 COPY . .
 
@@ -15,10 +16,16 @@ FROM alpine:3.22.2
 
 WORKDIR /app
 
-COPY --from=builder /app/server .
+RUN apk add --no-cache postgresql16-client
 
+COPY --from=builder /go/bin/goose /usr/local/bin/goose
+COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/server .
 COPY .env .env
+COPY entry_point.sh .
+
+RUN chmod +x entry_point.sh
 
 EXPOSE 8080
 
-CMD ["./server"]
+ENTRYPOINT ["./entry_point.sh"]

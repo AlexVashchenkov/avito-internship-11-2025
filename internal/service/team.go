@@ -15,10 +15,15 @@ var (
 
 type TeamService struct {
 	teamRepo contracts.TeamRepository
+	userRepo contracts.UserRepository
 }
 
-func NewTeamService(teamRepo contracts.TeamRepository) *TeamService {
+func NewTeamService(teamRepo contracts.TeamRepository, userRepo contracts.UserRepository) *TeamService {
 	return &TeamService{teamRepo: teamRepo}
+}
+
+func NewTeamServiceWithUserRepo(teamRepo contracts.TeamRepository, userRepo contracts.UserRepository) *TeamService {
+	return &TeamService{teamRepo: teamRepo, userRepo: userRepo}
 }
 
 func (s *TeamService) Create(ctx context.Context, team *api.Team) (*api.Team, error) {
@@ -26,7 +31,32 @@ func (s *TeamService) Create(ctx context.Context, team *api.Team) (*api.Team, er
 		return nil, ErrTeamExists
 	}
 
-	s.teamRepo.CreateTeam(team)
+	if repoWithTx, ok := s.teamRepo.(interface {
+		CreateTeamWithMembers(team *api.Team) error
+	}); ok {
+		if err := repoWithTx.CreateTeamWithMembers(team); err != nil {
+			return nil, err
+		}
+	} else {
+		s.teamRepo.CreateTeam(team)
+		if s.userRepo != nil {
+			for _, member := range team.Members {
+				user := &api.User{
+					UserID:   member.UserID,
+					Username: member.Username,
+					TeamName: team.TeamName,
+					IsActive: member.IsActive,
+				}
+
+				if _, ok := s.userRepo.GetUser(member.UserID); ok {
+					s.userRepo.UpdateUser(user)
+				} else {
+					s.userRepo.CreateUser(user)
+				}
+			}
+		}
+	}
+
 	return team, nil
 }
 

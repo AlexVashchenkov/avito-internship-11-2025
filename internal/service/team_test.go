@@ -12,8 +12,9 @@ import (
 
 func TestTeamService_Create(t *testing.T) {
 	ctx := context.Background()
-	r := memory.InitTeamRepo()
-	s := service.NewTeamService(r)
+	teamRepo := memory.InitTeamRepo()
+	userRepo := memory.InitUserRepo()
+	s := service.NewTeamService(teamRepo, userRepo)
 
 	team := &api.Team{
 		TeamName: "Product",
@@ -34,8 +35,9 @@ func TestTeamService_Create(t *testing.T) {
 
 func TestTeamService_CreateAlreadyExists(t *testing.T) {
 	ctx := context.Background()
-	r := memory.InitTeamRepo()
-	s := service.NewTeamService(r)
+	teamRepo := memory.InitTeamRepo()
+	userRepo := memory.InitUserRepo()
+	s := service.NewTeamService(teamRepo, userRepo)
 
 	team := &api.Team{
 		TeamName: "frontend",
