@@ -8,9 +8,15 @@ import (
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/app"
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/repo/memory"
 	"github.com/AlexVashchenkov/avito-pr-reviewer-service/internal/service"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Unable to locate .env file")
+	}
+
 	prRepo := memory.InitPullRequestRepo()
 	userRepo := memory.InitUserRepo()
 	teamRepo := memory.InitTeamRepo()

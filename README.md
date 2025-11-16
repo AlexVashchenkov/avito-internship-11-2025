@@ -15,3 +15,6 @@ components:
         scheme: bearer
         bearerFormat: JWT
 ```
+
+### Выполненные доп. задания:
+1. Описал конфигурацию линтера `golangci-lint` в файле `.golangci.yml`, и добавил команду для запуска линтера в Makefile
