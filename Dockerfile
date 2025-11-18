@@ -22,10 +22,6 @@ COPY --from=builder /go/bin/goose /usr/local/bin/goose
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/server .
 COPY .env .env
-COPY entry_point.sh .
-
-RUN chmod +x entry_point.sh
-
 EXPOSE 8080
 
-ENTRYPOINT ["./entry_point.sh"]
+ENTRYPOINT ["./server"]
